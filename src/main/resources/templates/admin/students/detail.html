@@ -11,6 +11,7 @@
     <h1 class="h4 mb-3">Chi tiết sinh viên</h1>
 
     <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <table class="table table-bordered w-auto">
         <tr><th>Mã sinh viên</th><td th:text="${student.maSV}"></td></tr>
@@ -30,8 +31,16 @@
             </td>
         </tr>
         <tr>
-            <th>Tài khoản</th>
-            <td th:text="${student.taiKhoan != null} ? ${student.taiKhoan.tenDangNhap} : 'Chưa có tài khoản'"></td>
+            <th>Tên đăng nhập</th>
+            <td th:text="${student.taiKhoan?.tenDangNhap} ?: 'Chưa có tài khoản'"></td>
+        </tr>
+        <tr>
+            <th>Vai trò</th>
+            <td th:text="${student.taiKhoan?.vaiTro}"></td>
+        </tr>
+        <tr>
+            <th>Trạng thái tài khoản</th>
+            <td th:text="${student.taiKhoan?.trangThai}"></td>
         </tr>
     </table>
 

@@ -9,6 +9,7 @@ import com.ptit.courseregistration.repository.KhoaRepository;
 import com.ptit.courseregistration.repository.SinhVienRepository;
 import com.ptit.courseregistration.repository.TaiKhoanRepository;
 import org.hibernate.Hibernate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +21,22 @@ public class StudentService {
 
     private static final String ACTIVE = "ACTIVE";
     private static final String LOCKED = "LOCKED";
+    private static final String ROLE_STUDENT = "STUDENT";
+    private static final String DEFAULT_PASSWORD = "Student@123";
 
     private final SinhVienRepository sinhVienRepository;
     private final KhoaRepository khoaRepository;
     private final TaiKhoanRepository taiKhoanRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public StudentService(SinhVienRepository sinhVienRepository,
                           KhoaRepository khoaRepository,
-                          TaiKhoanRepository taiKhoanRepository) {
+                          TaiKhoanRepository taiKhoanRepository,
+                          PasswordEncoder passwordEncoder) {
         this.sinhVienRepository = sinhVienRepository;
         this.khoaRepository = khoaRepository;
         this.taiKhoanRepository = taiKhoanRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -66,10 +72,23 @@ public class StudentService {
             throw new BusinessException("Email already exists: " + email);
         }
         Khoa khoa = findKhoa(form.getMaKhoa());
+        if (taiKhoanRepository.existsByTenDangNhap(maSV)) {
+            throw new BusinessException("Username already exists: " + maSV);
+        }
+
+        TaiKhoan taiKhoan = new TaiKhoan();
+        taiKhoan.setTenDangNhap(maSV);
+        taiKhoan.setMatKhauHash(passwordEncoder.encode(DEFAULT_PASSWORD));
+        taiKhoan.setVaiTro(ROLE_STUDENT);
+        taiKhoan.setTrangThai(ACTIVE);
+        taiKhoan.setNgayTao(LocalDateTime.now());
+        taiKhoan.setNgayCapNhat(null);
+        taiKhoan = taiKhoanRepository.save(taiKhoan);
 
         SinhVien sv = new SinhVien();
         sv.setMaSV(maSV);
         sv.setTrangThai(ACTIVE);
+        sv.setTaiKhoan(taiKhoan);
         applyEditableFields(sv, form, khoa);
         return sinhVienRepository.save(sv);
     }
