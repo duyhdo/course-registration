@@ -22,6 +22,10 @@ public interface LopHocPhanRepository extends JpaRepository<LopHocPhan, String> 
     List<LopHocPhan> findByMonHoc_MaMonHoc(String maMonHoc);
 
     @EntityGraph(attributePaths = {"monHoc", "hocKy", "giangVien"})
+    @Query("SELECT l FROM LopHocPhan l WHERE l.maLopHocPhan = :id")
+    Optional<LopHocPhan> findWithDetailsById(@Param("id") String id);
+
+    @EntityGraph(attributePaths = {"monHoc", "hocKy", "giangVien"})
     @Query("""
             SELECT DISTINCT l FROM LopHocPhan l
             JOIN l.monHoc m

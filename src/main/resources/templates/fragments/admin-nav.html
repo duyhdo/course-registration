@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="nav(active)" class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/admin}">Quản trị</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'home'} ? 'active'" th:href="@{/admin}">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'students'} ? 'active'" th:href="@{/admin/students}">Sinh viên</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'subjects'} ? 'active'" th:href="@{/admin/subjects}">Môn học</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'sections'} ? 'active'" th:href="@{/admin/course-sections}">Lớp học phần</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'enrollments'} ? 'active'" th:href="@{/admin/enrollments}">Đăng ký</a></li>
+            </ul>
+            <form class="d-flex" method="post" th:action="@{/logout}">
+                <button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

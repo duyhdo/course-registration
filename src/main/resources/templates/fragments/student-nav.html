@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="nav(active)" class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/student}">Sinh viên</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'home'} ? 'active'" th:href="@{/student}">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'register'} ? 'active'" th:href="@{/student/course-sections}">Đăng ký học phần</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'registrations'} ? 'active'" th:href="@{/student/registrations}">Học phần đã đăng ký</a></li>
+                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'history'} ? 'active'" th:href="@{/student/enrollment-history}">Lịch sử đăng ký</a></li>
+            </ul>
+            <form class="d-flex" method="post" th:action="@{/logout}">
+                <button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>
