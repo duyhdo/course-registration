@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý đăng ký học phần</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div th:replace="~{fragments/admin-nav :: nav('enrollments')}"></div>
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Trang chủ</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Đăng ký</li>
+    </ol></nav>
+    <h1 class="h4 mb-3">Quản lý đăng ký học phần</h1>
+
+    <form class="row g-2 mb-3" method="get" th:action="@{/admin/enrollments}">
+        <div class="col-lg-3 col-md-6">
+            <input type="text" class="form-control" name="keyword" th:value="${keyword}"
+                   placeholder="Mã sinh viên hoặc họ tên">
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <select class="form-select" name="maHocKy">
+                <option value="">-- Tất cả học kỳ --</option>
+                <option th:each="semester : ${semesters}" th:value="${semester.maHocKy}"
+                        th:selected="${semester.maHocKy == maHocKy}"
+                        th:text="${semester.tenHocKy + ' - ' + semester.namHoc}"></option>
+            </select>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <select class="form-select" name="maLopHocPhan">
+                <option value="">-- Tất cả lớp học phần --</option>
+                <option th:each="section : ${courseSections}" th:value="${section.maLopHocPhan}"
+                        th:selected="${section.maLopHocPhan == maLopHocPhan}"
+                        th:text="${section.maLopHocPhan}"></option>
+            </select>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <select class="form-select" name="trangThai">
+                <option value="">Tất cả trạng thái</option>
+                <option value="REGISTERED" th:selected="${trangThai == 'REGISTERED'}">Đã đăng ký</option>
+                <option value="CANCELLED" th:selected="${trangThai == 'CANCELLED'}">Đã hủy</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-outline-primary">Tìm kiếm</button>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/enrollments}">Đặt lại</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Mã đăng ký</th>
+                <th>Mã sinh viên</th>
+                <th>Họ tên</th>
+                <th>Mã lớp</th>
+                <th>Môn học</th>
+                <th>Học kỳ</th>
+                <th>Ngày đăng ký</th>
+                <th>Ngày hủy</th>
+                <th>Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="enrollment : ${enrollments}">
+                <td th:text="${enrollment.maDangKy}"></td>
+                <td th:text="${enrollment.sinhVien.maSV}"></td>
+                <td th:text="${enrollment.sinhVien.hoTen}"></td>
+                <td th:text="${enrollment.lopHocPhan.maLopHocPhan}"></td>
+                <td th:text="${enrollment.lopHocPhan.monHoc.tenMonHoc}"></td>
+                <td th:text="${enrollment.lopHocPhan.hocKy.tenHocKy + ' - '
+                    + enrollment.lopHocPhan.hocKy.namHoc}"></td>
+                <td th:text="${enrollment.ngayDangKy != null
+                    ? #temporals.format(enrollment.ngayDangKy, 'dd/MM/yyyy HH:mm') : ''}"></td>
+                <td th:text="${enrollment.ngayHuy != null
+                    ? #temporals.format(enrollment.ngayHuy, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${enrollment.trangThai == 'REGISTERED'} ? 'bg-success' : 'bg-secondary'"
+                          th:text="${enrollment.trangThai == 'REGISTERED' ? 'Đã đăng ký' : 'Đã hủy'}"></span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(enrollments)}">
+                <td colspan="9" class="text-center text-muted">Không có dữ liệu đăng ký.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a class="btn btn-secondary" th:href="@{/admin}">Quay lại trang chủ</a>
+</div>
+</body>
+</html>
