@@ -395,4 +395,73 @@ class StudentServiceTest {
 
         verify(taiKhoanRepository, never()).save(any());
     }
+
+    // ---------- Step 11: student profile read ----------
+
+    @Test
+    void shouldReturnStudentProfileWhenStudentExists() {
+        SinhVien sv = student("ACTIVE", taiKhoan("ACTIVE"));
+        sv.setNgaySinh(LocalDate.of(2003, 5, 20));
+        sv.setGioiTinh("Nam");
+        sv.setSoDienThoai("0901234567");
+        sv.setDiaChi("Ha Noi");
+        sv.setKhoaHoc("2021");
+        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.of(sv));
+
+        SinhVien profile = studentService.findById(MA_SV);
+
+        assertSame(sv, profile);
+        assertEquals(MA_SV, profile.getMaSV());
+        assertEquals("Old Name", profile.getHoTen());
+        assertEquals(LocalDate.of(2003, 5, 20), profile.getNgaySinh());
+        assertEquals("Nam", profile.getGioiTinh());
+        assertEquals("old@ptit.edu.vn", profile.getEmail());
+        assertEquals("0901234567", profile.getSoDienThoai());
+        assertEquals("Ha Noi", profile.getDiaChi());
+        assertEquals("2021", profile.getKhoaHoc());
+        assertEquals("ACTIVE", profile.getTrangThai());
+    }
+
+    @Test
+    void shouldRejectProfileWhenStudentDoesNotExist() {
+        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () -> studentService.findById(MA_SV));
+    }
+
+    @Test
+    void shouldLoadAssociatedKhoaRequiredByProfile() {
+        SinhVien sv = student("ACTIVE", null);
+        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.of(sv));
+
+        SinhVien profile = studentService.findById(MA_SV);
+
+        assertNotNull(profile.getKhoa());
+        assertEquals("Khoa CNTT", profile.getKhoa().getTenKhoa());
+    }
+
+    @Test
+    void profileReadShouldNotModifyStudent() {
+        SinhVien sv = student("ACTIVE", null);
+        sv.setDiaChi("Ha Noi");
+        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.of(sv));
+
+        SinhVien profile = studentService.findById(MA_SV);
+
+        assertEquals("Old Name", profile.getHoTen());
+        assertEquals("old@ptit.edu.vn", profile.getEmail());
+        assertEquals("ACTIVE", profile.getTrangThai());
+        assertEquals("Ha Noi", profile.getDiaChi());
+        assertEquals("CNTT", profile.getKhoa().getMaKhoa());
+    }
+
+    @Test
+    void profileReadShouldNotSaveStudent() {
+        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.of(student("ACTIVE", null)));
+
+        studentService.findById(MA_SV);
+
+        verify(sinhVienRepository, never()).save(any());
+        verifyNoInteractions(taiKhoanRepository, khoaRepository, passwordEncoder);
+    }
 }

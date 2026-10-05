@@ -1,6 +1,7 @@
 package com.ptit.courseregistration.service;
 
 import com.ptit.courseregistration.entity.DangKyHocPhan;
+import com.ptit.courseregistration.entity.GiangVien;
 import com.ptit.courseregistration.entity.HocKy;
 import com.ptit.courseregistration.entity.Khoa;
 import com.ptit.courseregistration.entity.LopHocPhan;
@@ -691,5 +692,189 @@ class DangKyHocPhanServiceTest {
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.cancel(MA_SV, MA_LOP));
 
         assertEquals(2, section.getSiSoHienTai());
+    }
+
+    // ---------- Step 11: course-section detail and credit summary ----------
+
+    private DangKyHocPhan registeredWithCredits(Integer credits) {
+        DangKyHocPhan registration = registration("REGISTERED");
+        registration.setLopHocPhan(section("OPEN", subject(credits), semester(), 2, 40));
+        return registration;
+    }
+
+    private void stubRegistered(List<DangKyHocPhan> registrations) {
+        stubStudent(student("ACTIVE"));
+        when(dangKyHocPhanRepository.findBySinhVien_MaSVAndTrangThaiIn(MA_SV, List.of("REGISTERED")))
+                .thenReturn(registrations);
+    }
+
+    @Test
+    void shouldReturnOpenCourseSectionDetail() {
+        LopHocPhan section = section("OPEN");
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section));
+
+        assertSame(section, dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP));
+    }
+
+    @Test
+    void shouldRejectMissingCourseSection() {
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP));
+        assertEquals("Lớp học phần không tồn tại.", ex.getMessage());
+    }
+
+    @Test
+    void shouldRejectDraftCourseSection() {
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section("DRAFT")));
+
+        assertThrows(BusinessException.class, () -> dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP));
+    }
+
+    @Test
+    void shouldRejectClosedCourseSection() {
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section("CLOSED")));
+
+        assertThrows(BusinessException.class, () -> dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP));
+    }
+
+    @Test
+    void shouldRejectCancelledCourseSection() {
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section("CANCELLED")));
+
+        assertThrows(BusinessException.class, () -> dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP));
+    }
+
+    @Test
+    void shouldAllowNullLecturer() {
+        LopHocPhan section = section("OPEN");
+        section.setGiangVien(null);
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section));
+
+        assertNull(dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP).getGiangVien());
+    }
+
+    @Test
+    void shouldReturnSubjectSemesterAndLecturerAssociations() {
+        LopHocPhan section = section("OPEN");
+        GiangVien lecturer = new GiangVien();
+        lecturer.setMaGV("GV001");
+        lecturer.setHoTen("Giang vien");
+        section.setGiangVien(lecturer);
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section));
+
+        LopHocPhan result = dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP);
+
+        assertEquals(MA_MON, result.getMonHoc().getMaMonHoc());
+        assertEquals(3, result.getMonHoc().getSoTinChi());
+        assertEquals(MA_HK, result.getHocKy().getMaHocKy());
+        assertEquals("GV001", result.getGiangVien().getMaGV());
+        verify(lopHocPhanRepository).findWithDetailsById(MA_LOP);
+    }
+
+    @Test
+    void courseSectionDetailShouldNotModifySection() {
+        LopHocPhan section = section("OPEN");
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section));
+
+        dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP);
+
+        assertEquals("OPEN", section.getTrangThai());
+        assertEquals(2, section.getSiSoHienTai());
+        assertEquals(40, section.getSiSoToiDa());
+        assertEquals(3, section.getMonHoc().getSoTinChi());
+    }
+
+    @Test
+    void courseSectionDetailShouldNotSaveSection() {
+        when(lopHocPhanRepository.findWithDetailsById(MA_LOP)).thenReturn(Optional.of(section("OPEN")));
+
+        dangKyHocPhanService.findOpenCourseSectionDetail(MA_LOP);
+
+        verify(lopHocPhanRepository, never()).save(any());
+        verify(lopHocPhanRepository, never()).findByIdForUpdate(any());
+        verifyNoInteractions(dangKyHocPhanRepository);
+    }
+
+    @Test
+    void shouldCalculateTotalRegisteredCredits() {
+        stubRegistered(List.of(registeredWithCredits(3), registeredWithCredits(3), registeredWithCredits(4)));
+
+        assertEquals(10, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+    }
+
+    @Test
+    void shouldReturnZeroWhenNoRegisteredEnrollments() {
+        stubRegistered(List.of());
+
+        assertEquals(0, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+    }
+
+    @Test
+    void shouldSumAcrossReturnedRegisteredEnrollments() {
+        DangKyHocPhan otherSemester = registeredWithCredits(2);
+        HocKy another = semester();
+        another.setMaHocKy("HK2027");
+        otherSemester.setLopHocPhan(section("OPEN", subject(2), another, 2, 40));
+        stubRegistered(List.of(registeredWithCredits(3), otherSemester));
+
+        assertEquals(5, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+        verify(dangKyHocPhanRepository, never()).sumRegisteredCredits(any(), any());
+    }
+
+    @Test
+    void shouldIgnoreCancelledEnrollment() {
+        stubRegistered(List.of(registeredWithCredits(3)));
+
+        assertEquals(3, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+
+        verify(dangKyHocPhanRepository).findBySinhVien_MaSVAndTrangThaiIn(MA_SV, List.of("REGISTERED"));
+        verify(dangKyHocPhanRepository, never()).findBySinhVien_MaSVOrderByNgayDangKyDesc(any());
+    }
+
+    @Test
+    void shouldHandleSingleRegisteredEnrollment() {
+        stubRegistered(List.of(registeredWithCredits(4)));
+
+        assertEquals(4, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+    }
+
+    @Test
+    void shouldNotApplyMaximumCreditValidationDuringRead() {
+        stubRegistered(List.of(registeredWithCredits(10), registeredWithCredits(10), registeredWithCredits(5)));
+
+        assertEquals(25, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+    }
+
+    @Test
+    void shouldNotModifyEnrollmentData() {
+        DangKyHocPhan registration = registeredWithCredits(3);
+        stubRegistered(List.of(registration));
+
+        dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV);
+
+        assertEquals("REGISTERED", registration.getTrangThai());
+        assertNull(registration.getNgayHuy());
+        assertEquals(2, registration.getLopHocPhan().getSiSoHienTai());
+    }
+
+    @Test
+    void shouldNotSaveEnrollment() {
+        stubRegistered(List.of(registeredWithCredits(3)));
+
+        dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV);
+
+        verify(dangKyHocPhanRepository, never()).save(any());
+        verify(lopHocPhanRepository, never()).save(any());
+        verifyNoInteractions(lopHocPhanRepository);
+    }
+
+    @Test
+    void shouldRejectCreditSummaryWhenStudentDoesNotExist() {
+        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () -> dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
+        verifyNoInteractions(dangKyHocPhanRepository);
     }
 }

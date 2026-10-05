@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chi tiết lớp học phần</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div th:replace="~{fragments/student-nav :: nav('register')}"></div>
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/student}">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/student/course-sections}">Đăng ký học phần</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Chi tiết lớp học phần</li>
+    </ol></nav>
+    <h1 class="h4 mb-3">Chi tiết lớp học phần</h1>
+
+    <table class="table table-bordered w-auto">
+        <tr><th>Mã lớp học phần</th><td th:text="${courseSection.maLopHocPhan}"></td></tr>
+        <tr><th>Tên môn học</th>
+            <td th:text="${courseSection.monHoc.maMonHoc + ' - ' + courseSection.monHoc.tenMonHoc}"></td></tr>
+        <tr><th>Số tín chỉ</th><td th:text="${courseSection.monHoc.soTinChi}"></td></tr>
+        <tr><th>Học kỳ</th>
+            <td th:text="${courseSection.hocKy.tenHocKy + ' - ' + courseSection.hocKy.namHoc}"></td></tr>
+        <tr><th>Giảng viên</th>
+            <td th:text="${courseSection.giangVien != null} ? ${courseSection.giangVien.hoTen} : 'Chưa phân công'"></td></tr>
+        <tr><th>Thứ học</th>
+            <td th:text="${courseSection.thuHoc == null} ? '-'
+                : (${courseSection.thuHoc == 8} ? 'Chủ nhật' : 'Thứ ' + ${courseSection.thuHoc})"></td></tr>
+        <tr><th>Tiết bắt đầu</th><td th:text="${courseSection.tietBatDau} ?: '-'"></td></tr>
+        <tr><th>Tiết kết thúc</th><td th:text="${courseSection.tietKetThuc} ?: '-'"></td></tr>
+        <tr><th>Phòng học</th><td th:text="${courseSection.phongHoc} ?: '-'"></td></tr>
+        <tr><th>Sĩ số (hiện tại / tối đa)</th>
+            <td th:text="${courseSection.siSoHienTai + ' / ' + courseSection.siSoToiDa}"></td></tr>
+        <tr><th>Trạng thái</th>
+            <td><span class="badge bg-success" th:text="${courseSection.trangThai}"></span></td></tr>
+    </table>
+
+    <div class="d-flex gap-2">
+        <form method="post"
+              th:action="@{/student/course-sections/{id}/register(id=${courseSection.maLopHocPhan})}">
+            <button type="submit" class="btn btn-primary">Đăng ký</button>
+        </form>
+        <a class="btn btn-secondary" th:href="@{/student/course-sections}">Quay lại danh sách</a>
+    </div>
+</div>
+</body>
+</html>

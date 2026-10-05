@@ -146,6 +146,28 @@ public class DangKyHocPhanService {
                 .findBySinhVien_MaSVAndTrangThaiIn(sinhVien.getMaSV(), List.of(REGISTERED)));
     }
 
+    @Transactional(readOnly = true)
+    public int calculateTotalRegisteredCredits(String maSV) {
+        SinhVien sinhVien = findSinhVien(maSV);
+        return dangKyHocPhanRepository
+                .findBySinhVien_MaSVAndTrangThaiIn(sinhVien.getMaSV(), List.of(REGISTERED)).stream()
+                .map(dangKy -> dangKy.getLopHocPhan().getMonHoc().getSoTinChi())
+                .filter(credits -> credits != null)
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
+
+    @Transactional(readOnly = true)
+    public LopHocPhan findOpenCourseSectionDetail(String maLopHocPhan) {
+        String id = maLopHocPhan == null ? "" : maLopHocPhan.trim();
+        LopHocPhan lopHocPhan = lopHocPhanRepository.findWithDetailsById(id)
+                .orElseThrow(() -> new BusinessException("Lớp học phần không tồn tại."));
+        if (!OPEN.equals(lopHocPhan.getTrangThai())) {
+            throw new BusinessException("Lớp học phần hiện không mở đăng ký.");
+        }
+        return lopHocPhan;
+    }
+
     private SinhVien findSinhVien(String maSV) {
         String id = maSV == null ? "" : maSV.trim();
         return sinhVienRepository.findById(id)
