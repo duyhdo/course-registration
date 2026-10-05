@@ -61,6 +61,7 @@
                 <td th:text="${registration.trangThai}"></td>
                 <td>
                     <form method="post"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn hủy đăng ký học phần này?');"
                           th:action="@{/student/registrations/{id}/cancel(id=${registration.lopHocPhan.maLopHocPhan})}">
                         <button type="submit" class="btn btn-sm btn-outline-danger">Hủy đăng ký</button>
                     </form>
