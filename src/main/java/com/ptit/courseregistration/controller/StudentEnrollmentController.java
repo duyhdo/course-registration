@@ -43,6 +43,19 @@ public class StudentEnrollmentController {
         return "student/enrollment/available";
     }
 
+    @GetMapping("/course-sections/{maLopHocPhan}")
+    public String detail(@PathVariable String maLopHocPhan, Model model,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("courseSection",
+                    dangKyHocPhanService.findOpenCourseSectionDetail(maLopHocPhan));
+            return "student/enrollment/detail";
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/student/course-sections";
+        }
+    }
+
     @PostMapping("/course-sections/{maLopHocPhan}/register")
     public String register(@PathVariable String maLopHocPhan, Authentication authentication,
                            RedirectAttributes redirectAttributes) {
@@ -59,6 +72,8 @@ public class StudentEnrollmentController {
     public String registrations(Authentication authentication, Model model) {
         model.addAttribute("registrations",
                 dangKyHocPhanService.findActiveRegistrations(authentication.getName()));
+        model.addAttribute("totalCredits",
+                dangKyHocPhanService.calculateTotalRegisteredCredits(authentication.getName()));
         return "student/enrollment/registrations";
     }
 

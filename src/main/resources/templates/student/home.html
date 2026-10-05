@@ -11,7 +11,17 @@
 <div th:replace="~{fragments/student-nav :: nav('home')}"></div>
 <div class="container mt-4 mb-5">
     <h1 class="h4 mb-3">Trang sinh viên</h1>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
     <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Thông tin cá nhân</h5>
+                    <p class="card-text text-muted">Xem thông tin sinh viên của bạn.</p>
+                    <a class="btn btn-primary mt-auto" th:href="@{/student/profile}">Truy cập</a>
+                </div>
+            </div>
+        </div>
         <div class="col-md-6 col-lg-4">
             <div class="card h-100">
                 <div class="card-body d-flex flex-column">

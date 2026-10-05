@@ -72,8 +72,10 @@
                 <td th:text="${section.phongHoc} ?: 'Chưa xếp'"></td>
                 <td th:text="${section.monHoc.soTinChi}"></td>
                 <td th:text="${section.siSoHienTai + ' / ' + section.siSoToiDa}"></td>
-                <td>
-                    <form method="post"
+                <td class="text-nowrap">
+                    <a class="btn btn-sm btn-outline-info me-1"
+                       th:href="@{/student/course-sections/{id}(id=${section.maLopHocPhan})}">Xem chi tiết</a>
+                    <form class="d-inline" method="post"
                           th:action="@{/student/course-sections/{id}/register(id=${section.maLopHocPhan})}">
                         <button type="submit" class="btn btn-sm btn-primary">Đăng ký</button>
                     </form>

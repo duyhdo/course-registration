@@ -22,6 +22,8 @@
     <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
     <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
+    <p class="fw-semibold">Tổng số tín chỉ đã đăng ký: <span th:text="${totalCredits}"></span></p>
+
     <div class="table-responsive">
         <table class="table table-bordered table-striped align-middle">
             <thead class="table-light">
