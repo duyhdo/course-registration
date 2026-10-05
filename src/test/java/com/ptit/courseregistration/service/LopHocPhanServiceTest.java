@@ -6,6 +6,7 @@ import com.ptit.courseregistration.entity.HocKy;
 import com.ptit.courseregistration.entity.LopHocPhan;
 import com.ptit.courseregistration.entity.MonHoc;
 import com.ptit.courseregistration.exception.BusinessException;
+import com.ptit.courseregistration.repository.DangKyHocPhanRepository;
 import com.ptit.courseregistration.repository.GiangVienRepository;
 import com.ptit.courseregistration.repository.HocKyRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
@@ -39,6 +40,8 @@ class LopHocPhanServiceTest {
 
     @Mock
     private LopHocPhanRepository lopHocPhanRepository;
+    @Mock
+    private DangKyHocPhanRepository dangKyHocPhanRepository;
     @Mock
     private MonHocRepository monHocRepository;
     @Mock
@@ -677,6 +680,8 @@ class LopHocPhanServiceTest {
     void shouldCancelDraftCourseSection() {
         LopHocPhan section = section("DRAFT");
         stubExisting(section);
+        when(dangKyHocPhanRepository
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
         stubSave();
 
         lopHocPhanService.cancel(MA_LOP);
@@ -689,11 +694,43 @@ class LopHocPhanServiceTest {
     void shouldCancelOpenCourseSection() {
         LopHocPhan section = section("OPEN");
         stubExisting(section);
+        when(dangKyHocPhanRepository
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
         stubSave();
 
         lopHocPhanService.cancel(MA_LOP);
 
         assertEquals("CANCELLED", section.getTrangThai());
+    }
+
+    @Test
+    void shouldCancelWhenNoRegisteredStudents() {
+        LopHocPhan section = section("OPEN");
+        stubExisting(section);
+        when(dangKyHocPhanRepository
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
+        stubSave();
+
+        lopHocPhanService.cancel(MA_LOP);
+
+        assertEquals("CANCELLED", section.getTrangThai());
+        verify(lopHocPhanRepository).save(section);
+    }
+
+    @Test
+    void shouldRejectCancelWhenRegisteredStudentsExist() {
+        LopHocPhan section = section("OPEN");
+        stubExisting(section);
+        when(dangKyHocPhanRepository
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(true);
+
+        assertThrows(BusinessException.class, () -> lopHocPhanService.cancel(MA_LOP));
+
+        assertEquals("OPEN", section.getTrangThai());
+        verify(lopHocPhanRepository, never()).save(any(LopHocPhan.class));
+        verify(dangKyHocPhanRepository)
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED");
+        verify(dangKyHocPhanRepository, never()).save(any());
     }
 
     @Test

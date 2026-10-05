@@ -6,6 +6,7 @@ import com.ptit.courseregistration.entity.HocKy;
 import com.ptit.courseregistration.entity.LopHocPhan;
 import com.ptit.courseregistration.entity.MonHoc;
 import com.ptit.courseregistration.exception.BusinessException;
+import com.ptit.courseregistration.repository.DangKyHocPhanRepository;
 import com.ptit.courseregistration.repository.GiangVienRepository;
 import com.ptit.courseregistration.repository.HocKyRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
@@ -26,15 +27,18 @@ public class LopHocPhanService {
     private static final String CANCELLED = "CANCELLED";
 
     private final LopHocPhanRepository lopHocPhanRepository;
+    private final DangKyHocPhanRepository dangKyHocPhanRepository;
     private final MonHocRepository monHocRepository;
     private final GiangVienRepository giangVienRepository;
     private final HocKyRepository hocKyRepository;
 
     public LopHocPhanService(LopHocPhanRepository lopHocPhanRepository,
+                             DangKyHocPhanRepository dangKyHocPhanRepository,
                              MonHocRepository monHocRepository,
                              GiangVienRepository giangVienRepository,
                              HocKyRepository hocKyRepository) {
         this.lopHocPhanRepository = lopHocPhanRepository;
+        this.dangKyHocPhanRepository = dangKyHocPhanRepository;
         this.monHocRepository = monHocRepository;
         this.giangVienRepository = giangVienRepository;
         this.hocKyRepository = hocKyRepository;
@@ -167,6 +171,10 @@ public class LopHocPhanService {
         LopHocPhan lopHocPhan = findById(maLopHocPhan);
         if (!DRAFT.equals(lopHocPhan.getTrangThai()) && !OPEN.equals(lopHocPhan.getTrangThai())) {
             throw new BusinessException("Chỉ lớp học phần ở trạng thái DRAFT hoặc OPEN mới được hủy.");
+        }
+        if (dangKyHocPhanRepository.existsByLopHocPhan_MaLopHocPhanAndTrangThai(
+                lopHocPhan.getMaLopHocPhan(), "REGISTERED")) {
+            throw new BusinessException("Không thể hủy lớp học phần vì đã có sinh viên đăng ký.");
         }
         lopHocPhan.setTrangThai(CANCELLED);
         lopHocPhanRepository.save(lopHocPhan);

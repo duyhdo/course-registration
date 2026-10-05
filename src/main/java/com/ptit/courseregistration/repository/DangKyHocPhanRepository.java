@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface DangKyHocPhanRepository extends JpaRepository<DangKyHocPhan, Long> {
 
+    boolean existsByLopHocPhan_MaLopHocPhanAndTrangThai(String maLopHocPhan, String trangThai);
+
     boolean existsBySinhVien_MaSVAndLopHocPhan_MaLopHocPhan(String maSV, String maLopHocPhan);
 
     boolean existsBySinhVien_MaSVAndLopHocPhan_MaLopHocPhanAndTrangThai(
