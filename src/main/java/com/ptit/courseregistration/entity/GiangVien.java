@@ -6,7 +6,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -16,10 +15,6 @@ public class GiangVien {
     @Id
     @Column(name = "MaGV", length = 20, nullable = false)
     private String maGV;
-
-    @OneToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "TaiKhoanId", referencedColumnName = "TaiKhoanId", nullable = true, unique = true)
-    private TaiKhoan taiKhoan;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "MaKhoa", referencedColumnName = "MaKhoa", nullable = false)
@@ -49,14 +44,6 @@ public class GiangVien {
 
     public void setMaGV(String maGV) {
         this.maGV = maGV;
-    }
-
-    public TaiKhoan getTaiKhoan() {
-        return taiKhoan;
-    }
-
-    public void setTaiKhoan(TaiKhoan taiKhoan) {
-        this.taiKhoan = taiKhoan;
     }
 
     public Khoa getKhoa() {
