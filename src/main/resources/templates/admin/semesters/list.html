@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cấu hình học kỳ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div th:replace="~{fragments/admin-nav :: nav('semesters')}"></div>
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Trang chủ</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Học kỳ</li>
+    </ol></nav>
+    <h1 class="h4 mb-3">Cấu hình học kỳ</h1>
+
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Mã học kỳ</th>
+                <th>Tên học kỳ</th>
+                <th>Năm học</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Mở đăng ký</th>
+                <th>Đóng đăng ký</th>
+                <th>Tín chỉ tối thiểu</th>
+                <th>Tín chỉ tối đa</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${semesters}">
+                <td th:text="${s.maHocKy}"></td>
+                <td th:text="${s.tenHocKy}"></td>
+                <td th:text="${s.namHoc}"></td>
+                <td th:text="${s.ngayBatDau != null} ? ${#temporals.format(s.ngayBatDau, 'dd/MM/yyyy')} : '-'"></td>
+                <td th:text="${s.ngayKetThuc != null} ? ${#temporals.format(s.ngayKetThuc, 'dd/MM/yyyy')} : '-'"></td>
+                <td th:text="${s.ngayMoDangKy != null} ? ${#temporals.format(s.ngayMoDangKy, 'dd/MM/yyyy HH:mm')} : 'Chưa cấu hình'"></td>
+                <td th:text="${s.ngayDongDangKy != null} ? ${#temporals.format(s.ngayDongDangKy, 'dd/MM/yyyy HH:mm')} : 'Chưa cấu hình'"></td>
+                <td th:text="${s.tinChiToiThieu != null} ? ${s.tinChiToiThieu} : 'Chưa cấu hình'"></td>
+                <td th:text="${s.tinChiToiDa != null} ? ${s.tinChiToiDa} : 'Chưa cấu hình'"></td>
+                <td class="text-nowrap">
+                    <a class="btn btn-sm btn-primary"
+                       th:href="@{/admin/semesters/{id}/edit(id=${s.maHocKy})}">Cấu hình</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(semesters)}">
+                <td colspan="10" class="text-center text-muted">Chưa có học kỳ nào.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a class="btn btn-secondary" th:href="@{/admin}">Quay lại trang chủ</a>
+</div>
+</body>
+</html>
