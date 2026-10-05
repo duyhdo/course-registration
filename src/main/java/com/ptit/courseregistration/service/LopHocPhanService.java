@@ -118,6 +118,11 @@ public class LopHocPhanService {
 
         HocKy hocKy = open ? lopHocPhan.getHocKy() : findHocKy(maHocKy);
         GiangVien giangVien = findOptionalGiangVien(form.getMaGV());
+        if (giangVien != null
+                && (lopHocPhan.getGiangVien() == null
+                || !giangVien.getMaGV().equals(lopHocPhan.getGiangVien().getMaGV()))) {
+            requireActiveTeacher(giangVien);
+        }
 
         lopHocPhan.setMonHoc(monHoc);
         lopHocPhan.setHocKy(hocKy);
