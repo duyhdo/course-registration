@@ -1,27 +1,55 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
-<nav th:fragment="nav(active)" class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" th:href="@{/admin}">Quản trị</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'home'} ? 'active'" th:href="@{/admin}">Trang chủ</a></li>
-                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'students'} ? 'active'" th:href="@{/admin/students}">Sinh viên</a></li>
-                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'subjects'} ? 'active'" th:href="@{/admin/subjects}">Môn học</a></li>
-                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'sections'} ? 'active'" th:href="@{/admin/course-sections}">Lớp học phần</a></li>
-                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'enrollments'} ? 'active'" th:href="@{/admin/enrollments}">Đăng ký</a></li>
-                <li class="nav-item"><a class="nav-link" th:classappend="${active == 'semesters'} ? 'active'" th:href="@{/admin/semesters}">Học kỳ</a></li>
-            </ul>
-            <form class="d-flex" method="post" th:action="@{/logout}">
-                <button type="submit" class="btn btn-outline-light btn-sm">Đăng xuất</button>
-            </form>
+<div th:fragment="nav(active)">
+    <header class="border-bottom bg-white">
+        <div class="container d-flex justify-content-between align-items-center gap-3 py-3">
+            <a class="navbar-brand fw-semibold mb-0 text-wrap" th:href="@{/admin}">
+                Hệ thống Đăng ký Học phần
+            </a>
+            <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                <span class="text-secondary d-none d-sm-inline">Quản trị viên</span>
+                <form method="post" th:action="@{/logout}">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Đăng xuất</button>
+                </form>
+            </div>
         </div>
-    </div>
-</nav>
+    </header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Mở điều hướng">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active == 'home'} ? 'active'"
+                                             th:attr="aria-current=${active == 'home'} ? 'page' : null"
+                                             th:href="@{/admin}">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active == 'students'} ? 'active'"
+                                             th:attr="aria-current=${active == 'students'} ? 'page' : null"
+                                             th:href="@{/admin/students}">Sinh viên</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active == 'subjects'} ? 'active'"
+                                             th:attr="aria-current=${active == 'subjects'} ? 'page' : null"
+                                             th:href="@{/admin/subjects}">Môn học</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active == 'sections'} ? 'active'"
+                                             th:attr="aria-current=${active == 'sections'} ? 'page' : null"
+                                             th:href="@{/admin/course-sections}">Lớp học phần</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active == 'enrollments'} ? 'active'"
+                                             th:attr="aria-current=${active == 'enrollments'} ? 'page' : null"
+                                             th:href="@{/admin/enrollments}">Đăng ký</a></li>
+                    <li class="nav-item"><a class="nav-link" th:classappend="${active == 'semesters'} ? 'active'"
+                                             th:attr="aria-current=${active == 'semesters'} ? 'page' : null"
+                                             th:href="@{/admin/semesters}">Học kỳ</a></li>
+                    <li class="nav-item">
+                        <form method="post" th:action="@{/logout}">
+                            <button type="submit" class="btn btn-link nav-link">Đăng xuất</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
 </body>
 </html>
