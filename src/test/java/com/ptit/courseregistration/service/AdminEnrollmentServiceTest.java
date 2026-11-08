@@ -9,6 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
@@ -41,70 +43,85 @@ class AdminEnrollmentServiceTest {
     @Test
     void shouldSearchWithAllFilters() {
         List<DangKyHocPhan> enrollments = List.of(new DangKyHocPhan());
-        when(dangKyHocPhanRepository.searchForAdmin("SV001", "HK1", MA_LOP, "REGISTERED"))
-                .thenReturn(enrollments);
+        when(dangKyHocPhanRepository.searchForAdmin(
+                "SV001", "HK1", MA_LOP, "REGISTERED", PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(enrollments));
 
-        assertSame(enrollments,
-                adminEnrollmentService.search(" SV001 ", " HK1 ", " LHP001 ", " REGISTERED "));
+        adminEnrollmentService.search(" SV001 ", " HK1 ", " LHP001 ", " REGISTERED ",
+                PageRequest.of(0, 10));
 
-        verify(dangKyHocPhanRepository).searchForAdmin("SV001", "HK1", MA_LOP, "REGISTERED");
+        verify(dangKyHocPhanRepository).searchForAdmin(
+                "SV001", "HK1", MA_LOP, "REGISTERED", PageRequest.of(0, 10));
     }
 
     @Test
     void shouldConvertBlankKeywordToNull() {
-        when(dangKyHocPhanRepository.searchForAdmin(null, "HK1", MA_LOP, "REGISTERED"))
-                .thenReturn(List.of());
+        when(dangKyHocPhanRepository.searchForAdmin(
+                null, "HK1", MA_LOP, "REGISTERED", PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        adminEnrollmentService.search("  ", "HK1", MA_LOP, "REGISTERED");
+        adminEnrollmentService.search("  ", "HK1", MA_LOP, "REGISTERED", PageRequest.of(0, 10));
 
-        verify(dangKyHocPhanRepository).searchForAdmin(null, "HK1", MA_LOP, "REGISTERED");
+        verify(dangKyHocPhanRepository).searchForAdmin(
+                null, "HK1", MA_LOP, "REGISTERED", PageRequest.of(0, 10));
     }
 
     @Test
     void shouldConvertBlankSemesterToNull() {
-        when(dangKyHocPhanRepository.searchForAdmin("SV", null, MA_LOP, "REGISTERED"))
-                .thenReturn(List.of());
+        when(dangKyHocPhanRepository.searchForAdmin(
+                "SV", null, MA_LOP, "REGISTERED", PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        adminEnrollmentService.search("SV", " ", MA_LOP, "REGISTERED");
+        adminEnrollmentService.search("SV", " ", MA_LOP, "REGISTERED", PageRequest.of(0, 10));
 
-        verify(dangKyHocPhanRepository).searchForAdmin("SV", null, MA_LOP, "REGISTERED");
+        verify(dangKyHocPhanRepository).searchForAdmin(
+                "SV", null, MA_LOP, "REGISTERED", PageRequest.of(0, 10));
     }
 
     @Test
     void shouldConvertBlankCourseSectionToNull() {
-        when(dangKyHocPhanRepository.searchForAdmin("SV", "HK1", null, "REGISTERED"))
-                .thenReturn(List.of());
+        when(dangKyHocPhanRepository.searchForAdmin(
+                "SV", "HK1", null, "REGISTERED", PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        adminEnrollmentService.search("SV", "HK1", "\t", "REGISTERED");
+        adminEnrollmentService.search("SV", "HK1", "\t", "REGISTERED", PageRequest.of(0, 10));
 
-        verify(dangKyHocPhanRepository).searchForAdmin("SV", "HK1", null, "REGISTERED");
+        verify(dangKyHocPhanRepository).searchForAdmin(
+                "SV", "HK1", null, "REGISTERED", PageRequest.of(0, 10));
     }
 
     @Test
     void shouldConvertBlankStatusToNull() {
-        when(dangKyHocPhanRepository.searchForAdmin("SV", "HK1", MA_LOP, null))
-                .thenReturn(List.of());
+        when(dangKyHocPhanRepository.searchForAdmin(
+                "SV", "HK1", MA_LOP, null, PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        adminEnrollmentService.search("SV", "HK1", MA_LOP, " ");
+        adminEnrollmentService.search("SV", "HK1", MA_LOP, " ", PageRequest.of(0, 10));
 
-        verify(dangKyHocPhanRepository).searchForAdmin("SV", "HK1", MA_LOP, null);
+        verify(dangKyHocPhanRepository).searchForAdmin(
+                "SV", "HK1", MA_LOP, null, PageRequest.of(0, 10));
     }
 
     @Test
     void shouldSearchWithNoFilters() {
-        when(dangKyHocPhanRepository.searchForAdmin(null, null, null, null)).thenReturn(List.of());
+        when(dangKyHocPhanRepository.searchForAdmin(
+                null, null, null, null, PageRequest.of(0, 10))).thenReturn(new PageImpl<>(List.of()));
 
-        adminEnrollmentService.search(null, null, null, null);
+        adminEnrollmentService.search(null, null, null, null, PageRequest.of(0, 10));
 
-        verify(dangKyHocPhanRepository).searchForAdmin(null, null, null, null);
+        verify(dangKyHocPhanRepository).searchForAdmin(
+                null, null, null, null, PageRequest.of(0, 10));
     }
 
     @Test
     void shouldReturnRepositoryResults() {
         List<DangKyHocPhan> enrollments = List.of(new DangKyHocPhan(), new DangKyHocPhan());
-        when(dangKyHocPhanRepository.searchForAdmin(null, null, null, null)).thenReturn(enrollments);
+        when(dangKyHocPhanRepository.searchForAdmin(
+                null, null, null, null, PageRequest.of(0, 10))).thenReturn(new PageImpl<>(enrollments));
 
-        assertSame(enrollments, adminEnrollmentService.search(null, null, null, null));
+        assertSame(enrollments.get(0),
+                adminEnrollmentService.search(null, null, null, null, PageRequest.of(0, 10))
+                        .getContent().get(0));
     }
 
     @Test
@@ -112,12 +129,13 @@ class AdminEnrollmentServiceTest {
         DangKyHocPhan newest = new DangKyHocPhan();
         DangKyHocPhan oldest = new DangKyHocPhan();
         List<DangKyHocPhan> orderedResults = List.of(newest, oldest);
-        when(dangKyHocPhanRepository.searchForAdmin(null, null, null, null))
-                .thenReturn(orderedResults);
+        when(dangKyHocPhanRepository.searchForAdmin(null, null, null, null, PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(orderedResults));
 
-        List<DangKyHocPhan> result = adminEnrollmentService.search(null, null, null, null);
+        List<DangKyHocPhan> result = adminEnrollmentService
+                .search(null, null, null, null, PageRequest.of(0, 10)).getContent();
 
-        assertSame(orderedResults, result);
+        assertEquals(orderedResults, result);
         assertSame(newest, result.get(0));
         assertSame(oldest, result.get(1));
     }
@@ -237,9 +255,10 @@ class AdminEnrollmentServiceTest {
 
     @Test
     void searchShouldNotSaveEnrollment() {
-        when(dangKyHocPhanRepository.searchForAdmin(null, null, null, null)).thenReturn(List.of());
+        when(dangKyHocPhanRepository.searchForAdmin(
+                null, null, null, null, PageRequest.of(0, 10))).thenReturn(new PageImpl<>(List.of()));
 
-        adminEnrollmentService.search(null, null, null, null);
+        adminEnrollmentService.search(null, null, null, null, PageRequest.of(0, 10));
 
         assertNoEnrollmentWrites();
     }

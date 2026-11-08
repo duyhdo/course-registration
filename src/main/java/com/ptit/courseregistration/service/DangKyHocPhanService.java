@@ -10,6 +10,8 @@ import com.ptit.courseregistration.repository.DangKyHocPhanRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
 import com.ptit.courseregistration.repository.SinhVienRepository;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -133,10 +135,10 @@ public class DangKyHocPhanService {
     }
 
     @Transactional(readOnly = true)
-    public List<DangKyHocPhan> findStudentHistory(String maSV) {
+    public Page<DangKyHocPhan> findStudentHistory(String maSV, Pageable pageable) {
         SinhVien sinhVien = findSinhVien(maSV);
         return initialize(dangKyHocPhanRepository
-                .findBySinhVien_MaSVOrderByNgayDangKyDesc(sinhVien.getMaSV()));
+                .findBySinhVien_MaSV(sinhVien.getMaSV(), pageable));
     }
 
     @Transactional(readOnly = true)
@@ -214,5 +216,9 @@ public class DangKyHocPhanService {
     private List<DangKyHocPhan> initialize(List<DangKyHocPhan> registrations) {
         registrations.forEach(this::initialize);
         return registrations;
+    }
+
+    private Page<DangKyHocPhan> initialize(Page<DangKyHocPhan> registrations) {
+        return registrations.map(this::initialize);
     }
 }

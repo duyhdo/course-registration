@@ -20,6 +20,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -318,7 +319,7 @@ class DangKyHocPhanConcurrencyIntegrationTest {
         if (testSinhVienId != null) {
             // Delete enrollments first (foreign key constraint)
             List<DangKyHocPhan> allEnrollments = dangKyHocPhanRepository
-                    .findBySinhVien_MaSVOrderByNgayDangKyDesc(testSinhVienId);
+                    .findBySinhVien_MaSV(testSinhVienId, PageRequest.of(0, 10)).getContent();
             for (DangKyHocPhan dangKy : allEnrollments) {
                 dangKyHocPhanRepository.delete(dangKy);
             }

@@ -2,6 +2,8 @@ package com.ptit.courseregistration.repository;
 
 import com.ptit.courseregistration.entity.LopHocPhan;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -36,9 +38,10 @@ public interface LopHocPhanRepository extends JpaRepository<LopHocPhan, String> 
               AND (:maHocKy IS NULL OR l.hocKy.maHocKy = :maHocKy)
               AND (:trangThai IS NULL OR l.trangThai = :trangThai)
             """)
-    List<LopHocPhan> findByFilters(@Param("keyword") String keyword,
+    Page<LopHocPhan> findByFilters(@Param("keyword") String keyword,
                                    @Param("maHocKy") String maHocKy,
-                                   @Param("trangThai") String trangThai);
+                                   @Param("trangThai") String trangThai,
+                                   Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT l FROM LopHocPhan l WHERE l.maLopHocPhan = :id")

@@ -1,6 +1,8 @@
 package com.ptit.courseregistration.repository;
 
 import com.ptit.courseregistration.entity.DangKyHocPhan;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +24,7 @@ public interface DangKyHocPhanRepository extends JpaRepository<DangKyHocPhan, Lo
     Optional<DangKyHocPhan> findFirstBySinhVien_MaSVAndLopHocPhan_MaLopHocPhanAndTrangThaiOrderByNgayDangKyDesc(
             String maSV, String maLopHocPhan, String trangThai);
 
-    List<DangKyHocPhan> findBySinhVien_MaSVOrderByNgayDangKyDesc(String maSV);
+    Page<DangKyHocPhan> findBySinhVien_MaSV(String maSV, Pageable pageable);
 
     List<DangKyHocPhan> findBySinhVien_MaSVAndTrangThaiIn(String maSV, Collection<String> trangThai);
 
@@ -43,12 +45,12 @@ public interface DangKyHocPhanRepository extends JpaRepository<DangKyHocPhan, Lo
               AND (:maHocKy IS NULL OR d.lopHocPhan.hocKy.maHocKy = :maHocKy)
               AND (:maLopHocPhan IS NULL OR d.lopHocPhan.maLopHocPhan = :maLopHocPhan)
               AND (:trangThai IS NULL OR d.trangThai = :trangThai)
-            ORDER BY d.ngayDangKy DESC
             """)
-    List<DangKyHocPhan> searchForAdmin(@Param("keyword") String keyword,
+    Page<DangKyHocPhan> searchForAdmin(@Param("keyword") String keyword,
                                        @Param("maHocKy") String maHocKy,
                                        @Param("maLopHocPhan") String maLopHocPhan,
-                                       @Param("trangThai") String trangThai);
+                                       @Param("trangThai") String trangThai,
+                                       Pageable pageable);
 
     @EntityGraph(attributePaths = {"sinhVien", "lopHocPhan.monHoc", "lopHocPhan.hocKy",
             "lopHocPhan.giangVien"})

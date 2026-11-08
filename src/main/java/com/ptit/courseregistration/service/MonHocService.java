@@ -8,6 +8,8 @@ import com.ptit.courseregistration.repository.KhoaRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
 import com.ptit.courseregistration.repository.MonHocRepository;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +34,8 @@ public class MonHocService {
     }
 
     @Transactional(readOnly = true)
-    public List<MonHoc> findAll() {
-        return initialize(monHocRepository.findAll());
+    public Page<MonHoc> findAll(Pageable pageable) {
+        return initialize(monHocRepository.findAll(pageable));
     }
 
     @Transactional(readOnly = true)
@@ -45,13 +47,13 @@ public class MonHocService {
     }
 
     @Transactional(readOnly = true)
-    public List<MonHoc> search(String keyword) {
+    public Page<MonHoc> search(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
-            return findAll();
+            return findAll(pageable);
         }
         String value = keyword.trim();
         return initialize(monHocRepository.findByMaMonHocContainingIgnoreCaseOrTenMonHocContainingIgnoreCase(
-                value, value));
+                value, value, pageable));
     }
 
     @Transactional
@@ -128,9 +130,8 @@ public class MonHocService {
         return monHoc;
     }
 
-    private List<MonHoc> initialize(List<MonHoc> monHocList) {
-        monHocList.forEach(this::initialize);
-        return monHocList;
+    private Page<MonHoc> initialize(Page<MonHoc> page) {
+        return page.map(this::initialize);
     }
 
     private String blankToNull(String value) {
