@@ -43,13 +43,22 @@ Ký hiệu: `[x] DONE` — hoàn tất; `[-] IN PROGRESS` — đang thực hiệ
 - [x] DONE — `docs/ARCHITECTURE.md`.
 - [x] DONE — `docs/TASKS.md`.
 
-## 6. Deployment
+## 6. Database Bootstrap and Migrations
+
+- [x] DONE — SQL Server database bootstrap script and Flyway core migrations.
+- [x] DONE — Local-only deterministic demo seed with BCrypt password hashes.
+- [x] DONE — Default profile runs core migrations only; `local` includes demo seed.
+- [x] DONE — Verify migrations and local seed against a separate, genuinely empty SQL Server database.
+- [x] DONE — Verify seeded login, open sections, filtered index, and data counts on that isolated database.
+- [x] DONE — Verify 264-test regression suite and 265-test clean local-profile suite against the isolated database.
+
+## 7. Deployment
 
 - [ ] TODO — Triển khai EC2.
 - [ ] TODO — Deployment smoke test.
 - [ ] TODO — Tạo release/tag.
 
-## 7. Deferred / Out of Scope
+## 8. Deferred / Out of Scope
 
 - [~] DEFERRED / OUT OF SCOPE — Đăng nhập giảng viên.
 - [~] DEFERRED / OUT OF SCOPE — Multi-school.
