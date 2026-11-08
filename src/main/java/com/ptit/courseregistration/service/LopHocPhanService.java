@@ -12,6 +12,8 @@ import com.ptit.courseregistration.repository.HocKyRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
 import com.ptit.courseregistration.repository.MonHocRepository;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,9 +66,9 @@ public class LopHocPhanService {
     }
 
     @Transactional(readOnly = true)
-    public List<LopHocPhan> search(String keyword, String maHocKy, String trangThai) {
+    public Page<LopHocPhan> search(String keyword, String maHocKy, String trangThai, Pageable pageable) {
         return initialize(lopHocPhanRepository.findByFilters(
-                blankToNull(keyword), blankToNull(maHocKy), blankToNull(trangThai)));
+                blankToNull(keyword), blankToNull(maHocKy), blankToNull(trangThai), pageable));
     }
 
     @Transactional
@@ -300,5 +302,9 @@ public class LopHocPhanService {
     private List<LopHocPhan> initialize(List<LopHocPhan> lopHocPhanList) {
         lopHocPhanList.forEach(this::initialize);
         return lopHocPhanList;
+    }
+
+    private Page<LopHocPhan> initialize(Page<LopHocPhan> page) {
+        return page.map(this::initialize);
     }
 }

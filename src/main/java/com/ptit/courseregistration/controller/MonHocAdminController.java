@@ -6,7 +6,10 @@ import com.ptit.courseregistration.entity.MonHoc;
 import com.ptit.courseregistration.exception.BusinessException;
 import com.ptit.courseregistration.repository.KhoaRepository;
 import com.ptit.courseregistration.service.MonHocService;
+import com.ptit.courseregistration.web.PaginationSupport;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -35,9 +38,17 @@ public class MonHocAdminController {
     }
 
     @GetMapping
-    public String list(@RequestParam(required = false) String keyword, Model model) {
+    public String list(@RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) Integer page,
+                       @RequestParam(required = false) Integer size,
+                       Model model) {
         boolean blank = keyword == null || keyword.isBlank();
-        model.addAttribute("subjects", blank ? monHocService.findAll() : monHocService.search(keyword));
+        Sort sort = Sort.by(Sort.Direction.ASC, "maMonHoc");
+        Page<MonHoc> subjects = PaginationSupport.fetchPage(page, size, sort,
+                pageable -> blank ? monHocService.findAll(pageable) : monHocService.search(keyword, pageable));
+        model.addAttribute("subjects", subjects.getContent());
+        model.addAttribute("pagination",
+                PaginationSupport.view(subjects, "/admin/subjects", PaginationSupport.filters("keyword", keyword)));
         model.addAttribute("keyword", keyword);
         return "admin/subjects/list";
     }

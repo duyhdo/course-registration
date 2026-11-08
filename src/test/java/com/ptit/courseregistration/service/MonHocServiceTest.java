@@ -14,6 +14,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -87,9 +89,9 @@ class MonHocServiceTest {
     @Test
     void shouldReturnAllSubjects() {
         List<MonHoc> subjects = List.of(monHoc("ACTIVE", khoa(MA_KHOA, "ACTIVE")));
-        when(monHocRepository.findAll()).thenReturn(subjects);
+        when(monHocRepository.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(subjects));
 
-        assertSame(subjects, monHocService.findAll());
+        assertEquals(subjects, monHocService.findAll(PageRequest.of(0, 10)).getContent());
     }
 
     @Test
@@ -110,27 +112,26 @@ class MonHocServiceTest {
     @Test
     void shouldReturnAllWhenKeywordIsNull() {
         List<MonHoc> subjects = List.of(monHoc("ACTIVE", khoa(MA_KHOA, "ACTIVE")));
-        when(monHocRepository.findAll()).thenReturn(subjects);
+        when(monHocRepository.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(subjects));
 
-        assertSame(subjects, monHocService.search(null));
+        assertEquals(subjects, monHocService.search(null, PageRequest.of(0, 10)).getContent());
     }
 
     @Test
     void shouldReturnAllWhenKeywordIsBlank() {
         List<MonHoc> subjects = List.of(monHoc("ACTIVE", khoa(MA_KHOA, "ACTIVE")));
-        when(monHocRepository.findAll()).thenReturn(subjects);
+        when(monHocRepository.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(subjects));
 
-        assertSame(subjects, monHocService.search("  "));
+        assertEquals(subjects, monHocService.search("  ", PageRequest.of(0, 10)).getContent());
     }
 
     @Test
     void shouldSearchByCodeOrName() {
         List<MonHoc> subjects = List.of(monHoc("ACTIVE", khoa(MA_KHOA, "ACTIVE")));
-        when(monHocRepository
-                .findByMaMonHocContainingIgnoreCaseOrTenMonHocContainingIgnoreCase("MH", "MH"))
-                .thenReturn(subjects);
+        when(monHocRepository.findByMaMonHocContainingIgnoreCaseOrTenMonHocContainingIgnoreCase(
+                "MH", "MH", PageRequest.of(0, 10))).thenReturn(new PageImpl<>(subjects));
 
-        assertSame(subjects, monHocService.search(" MH "));
+        assertEquals(subjects, monHocService.search(" MH ", PageRequest.of(0, 10)).getContent());
     }
 
     @Test

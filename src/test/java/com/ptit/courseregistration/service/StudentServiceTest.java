@@ -15,6 +15,8 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -29,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -103,9 +106,9 @@ class StudentServiceTest {
     @Test
     void shouldReturnAllStudents() {
         List<SinhVien> all = List.of(student("ACTIVE", null));
-        when(sinhVienRepository.findAll()).thenReturn(all);
+        when(sinhVienRepository.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(all));
 
-        assertEquals(all, studentService.findAll());
+        assertEquals(all, studentService.findAll(PageRequest.of(0, 10)).getContent());
     }
 
     @Test
@@ -128,30 +131,30 @@ class StudentServiceTest {
     @Test
     void shouldReturnAllStudentsWhenKeywordIsNull() {
         List<SinhVien> all = List.of(student("ACTIVE", null));
-        when(sinhVienRepository.findAll()).thenReturn(all);
+        when(sinhVienRepository.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(all));
 
-        assertEquals(all, studentService.search(null));
+        assertEquals(all, studentService.search(null, PageRequest.of(0, 10)).getContent());
         verify(sinhVienRepository, never())
-                .findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(any(), any());
+                .findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(any(), any(), any());
     }
 
     @Test
     void shouldReturnAllStudentsWhenKeywordIsBlank() {
         List<SinhVien> all = List.of(student("ACTIVE", null));
-        when(sinhVienRepository.findAll()).thenReturn(all);
+        when(sinhVienRepository.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(all));
 
-        assertEquals(all, studentService.search("   "));
+        assertEquals(all, studentService.search("   ", PageRequest.of(0, 10)).getContent());
         verify(sinhVienRepository, never())
-                .findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(any(), any());
+                .findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(any(), any(), any());
     }
 
     @Test
     void shouldSearchByStudentCodeOrNameWhenKeywordProvided() {
         List<SinhVien> found = List.of(student("ACTIVE", null));
-        when(sinhVienRepository.findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase("B21", "B21"))
-                .thenReturn(found);
+        when(sinhVienRepository.findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(
+                eq("B21"), eq("B21"), any())).thenReturn(new PageImpl<>(found));
 
-        assertEquals(found, studentService.search(" B21 "));
+        assertEquals(found, studentService.search(" B21 ", PageRequest.of(0, 10)).getContent());
         verify(sinhVienRepository, never()).findAll();
     }
 
