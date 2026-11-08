@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Danh sách sinh viên lớp học phần</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div th:replace="~{fragments/admin-nav :: nav('sections')}"></div>
+<main class="app-page app-admin-content">
+    <nav aria-label="Điều hướng" class="app-breadcrumb"><ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/course-sections}">Lớp học phần</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/course-sections/{id}(id=${courseSection.maLopHocPhan})}">Chi tiết lớp học phần</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Danh sách sinh viên</li>
+    </ol></nav>
+    <h1 class="app-page-title mb-3">Sinh viên theo lớp học phần</h1>
+
+    <div class="app-detail-card mb-3">
+    <div class="table-responsive">
+    <table class="table table-bordered app-detail-table">
+        <tr><th>Mã lớp học phần</th><td th:text="${courseSection.maLopHocPhan}"></td></tr>
+        <tr><th>Môn học</th>
+            <td th:text="${courseSection.monHoc.maMonHoc + ' - ' + courseSection.monHoc.tenMonHoc}"></td>
+        </tr>
+        <tr><th>Học kỳ</th>
+            <td th:text="${courseSection.hocKy.tenHocKy + ' - ' + courseSection.hocKy.namHoc}"></td>
+        </tr>
+        <tr><th>Giảng viên</th>
+            <td th:text="${courseSection.giangVien != null
+                ? courseSection.giangVien.maGV + ' - ' + courseSection.giangVien.hoTen
+                : 'Chưa phân công'}"></td>
+        </tr>
+        <tr><th>Sĩ số hiện tại / Sĩ số tối đa</th>
+            <td th:text="${courseSection.siSoHienTai + ' / ' + courseSection.siSoToiDa}"></td>
+        </tr>
+        <tr><th>Số đăng ký đang hoạt động</th><td th:text="${registeredCount}"></td></tr>
+    </table>
+    </div>
+    </div>
+
+    <form class="app-filter-card row g-2 mb-3" method="get"
+          th:action="@{/admin/course-sections/{id}/students(id=${courseSection.maLopHocPhan})}">
+        <div class="col-12 col-md-auto">
+            <label class="form-label" for="trangThai">Trạng thái</label>
+            <select class="form-select" id="trangThai" name="trangThai">
+                <option value="REGISTERED" th:selected="${trangThai == 'REGISTERED'}">Đang đăng ký</option>
+                <option value="CANCELLED" th:selected="${trangThai == 'CANCELLED'}">Đã hủy</option>
+                <option value="ALL" th:selected="${trangThai == 'ALL'}">Tất cả</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-auto align-self-end">
+            <button type="submit" class="btn btn-primary">Lọc</button>
+        </div>
+    </form>
+
+    <div class="app-table-card table-responsive">
+        <table class="table table-hover align-middle app-data-table">
+            <thead>
+            <tr>
+                <th>Mã sinh viên</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Ngày đăng ký</th>
+                <th>Ngày hủy</th>
+                <th>Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="enrollment : ${enrollments}">
+                <td th:text="${enrollment.sinhVien.maSV}"></td>
+                <td th:text="${enrollment.sinhVien.hoTen}"></td>
+                <td th:text="${enrollment.sinhVien.email}"></td>
+                <td th:text="${enrollment.ngayDangKy != null
+                    ? #temporals.format(enrollment.ngayDangKy, 'dd/MM/yyyy HH:mm') : ''}"></td>
+                <td th:text="${enrollment.ngayHuy != null
+                    ? #temporals.format(enrollment.ngayHuy, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                <td>
+                    <span class="badge app-status"
+                          th:classappend="${enrollment.trangThai == 'REGISTERED'} ? 'bg-success' : (${enrollment.trangThai == 'CANCELLED'} ? 'bg-secondary' : 'bg-light text-dark')"
+                          th:text="${enrollment.trangThai == 'REGISTERED' ? 'Đã đăng ký' : 'Đã hủy'}"></span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(enrollments)}">
+                <td colspan="6" class="text-center text-muted">Không có sinh viên phù hợp.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a class="btn btn-outline-secondary mt-3"
+       th:href="@{/admin/course-sections/{id}(id=${courseSection.maLopHocPhan})}">Quay lại chi tiết lớp học phần</a>
+</main>
+</body>
+</html>

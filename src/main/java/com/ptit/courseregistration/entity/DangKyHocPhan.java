@@ -9,13 +9,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "DANGKYHOCPHAN", schema = "dbo",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"MaSV", "MaLopHocPhan"}))
+@Table(name = "DANGKYHOCPHAN", schema = "dbo")
 public class DangKyHocPhan {
 
     @Id
