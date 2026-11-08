@@ -14,6 +14,7 @@ import com.ptit.courseregistration.repository.SinhVienRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -118,12 +120,17 @@ class DangKyHocPhanServiceTest {
         when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.of(student));
     }
 
+    private void stubLockedStudent(SinhVien student) {
+        when(sinhVienRepository.findByMaSVForUpdate(MA_SV)).thenReturn(Optional.of(student));
+    }
+
     private void stubLockedSection(LopHocPhan section) {
         when(lopHocPhanRepository.findByIdForUpdate(MA_LOP)).thenReturn(Optional.of(section));
     }
 
     private void stubSuccessfulRegister(LopHocPhan section) {
-        stubStudent(student("ACTIVE"));
+        SinhVien student = student("ACTIVE");
+        stubLockedStudent(student);
         stubLockedSection(section);
         lenient().when(dangKyHocPhanRepository
                 .existsBySinhVien_MaSVAndLopHocPhan_MaLopHocPhanAndTrangThai(MA_SV, MA_LOP, "REGISTERED"))
@@ -148,7 +155,7 @@ class DangKyHocPhanServiceTest {
     void shouldRegisterSuccessfully() {
         SinhVien student = student("ACTIVE");
         LopHocPhan section = section("OPEN");
-        stubStudent(student);
+        stubLockedStudent(student);
         stubLockedSection(section);
         when(dangKyHocPhanRepository
                 .existsBySinhVien_MaSVAndLopHocPhan_MaLopHocPhanAndTrangThai(MA_SV, MA_LOP, "REGISTERED"))
@@ -181,6 +188,18 @@ class DangKyHocPhanServiceTest {
     }
 
     @Test
+    void shouldAcquireStudentLockBeforeSectionLockDuringRegistration() {
+        LopHocPhan section = section("OPEN");
+        stubSuccessfulRegister(section);
+
+        dangKyHocPhanService.register(MA_SV, MA_LOP);
+
+        InOrder inOrder = inOrder(sinhVienRepository, lopHocPhanRepository);
+        inOrder.verify(sinhVienRepository).findByMaSVForUpdate(MA_SV);
+        inOrder.verify(lopHocPhanRepository).findByIdForUpdate(MA_LOP);
+    }
+
+    @Test
     void shouldAllowRegistrationAtExactlyMaximumCredits() {
         LopHocPhan section = section("OPEN");
         section.getMonHoc().setSoTinChi(3);
@@ -193,7 +212,7 @@ class DangKyHocPhanServiceTest {
 
     @Test
     void shouldRejectRegisterWhenStudentDoesNotExist() {
-        when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.empty());
+        when(sinhVienRepository.findByMaSVForUpdate(MA_SV)).thenReturn(Optional.empty());
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
 
@@ -203,7 +222,7 @@ class DangKyHocPhanServiceTest {
 
     @Test
     void shouldRejectRegisterWhenStudentInactive() {
-        stubStudent(student("INACTIVE"));
+        stubLockedStudent(student("INACTIVE"));
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
 
@@ -213,7 +232,7 @@ class DangKyHocPhanServiceTest {
 
     @Test
     void shouldRejectRegisterWhenSectionDoesNotExist() {
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         when(lopHocPhanRepository.findByIdForUpdate(MA_LOP)).thenReturn(Optional.empty());
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -221,7 +240,7 @@ class DangKyHocPhanServiceTest {
 
     @Test
     void shouldRejectRegisterWhenSectionIsDraft() {
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section("DRAFT"));
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -229,7 +248,7 @@ class DangKyHocPhanServiceTest {
 
     @Test
     void shouldRejectRegisterWhenSectionIsClosed() {
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section("CLOSED"));
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -237,7 +256,7 @@ class DangKyHocPhanServiceTest {
 
     @Test
     void shouldRejectRegisterWhenSectionIsCancelled() {
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section("CANCELLED"));
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -280,7 +299,7 @@ class DangKyHocPhanServiceTest {
     void shouldRejectWhenRegistrationOpenDateIsNull() {
         LopHocPhan section = section("OPEN");
         section.getHocKy().setNgayMoDangKy(null);
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -290,7 +309,7 @@ class DangKyHocPhanServiceTest {
     void shouldRejectWhenRegistrationCloseDateIsNull() {
         LopHocPhan section = section("OPEN");
         section.getHocKy().setNgayDongDangKy(null);
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -300,7 +319,7 @@ class DangKyHocPhanServiceTest {
     void shouldRejectBeforeRegistrationWindow() {
         LopHocPhan section = section("OPEN");
         section.getHocKy().setNgayMoDangKy(LocalDateTime.now().plusDays(1));
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -310,7 +329,7 @@ class DangKyHocPhanServiceTest {
     void shouldRejectAfterRegistrationWindow() {
         LopHocPhan section = section("OPEN");
         section.getHocKy().setNgayDongDangKy(LocalDateTime.now().minusDays(1));
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -319,7 +338,7 @@ class DangKyHocPhanServiceTest {
     @Test
     void shouldRejectExistingActiveRegistrationForSameSection() {
         LopHocPhan section = section("OPEN");
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
         when(dangKyHocPhanRepository
                 .existsBySinhVien_MaSVAndLopHocPhan_MaLopHocPhanAndTrangThai(MA_SV, MA_LOP, "REGISTERED"))
@@ -352,7 +371,7 @@ class DangKyHocPhanServiceTest {
     @Test
     void shouldRejectAnotherRegisteredSectionOfSameSubjectAndSemester() {
         LopHocPhan section = section("OPEN");
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
         when(dangKyHocPhanRepository
                 .existsBySinhVien_MaSVAndLopHocPhan_MaLopHocPhanAndTrangThai(MA_SV, MA_LOP, "REGISTERED"))
@@ -384,7 +403,7 @@ class DangKyHocPhanServiceTest {
     void shouldRejectWhenSemesterMaximumCreditsNotConfigured() {
         LopHocPhan section = section("OPEN");
         section.getHocKy().setTinChiToiDa(null);
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -415,7 +434,7 @@ class DangKyHocPhanServiceTest {
     @Test
     void shouldRejectWhenSubjectCreditsAreNull() {
         LopHocPhan section = section("OPEN", subject(null), semester(), 2, 40);
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -427,7 +446,7 @@ class DangKyHocPhanServiceTest {
     @Test
     void shouldRejectWhenSubjectCreditsAreZero() {
         LopHocPhan section = section("OPEN", subject(0), semester(), 2, 40);
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));
@@ -439,7 +458,7 @@ class DangKyHocPhanServiceTest {
     @Test
     void shouldRejectWhenSubjectCreditsAreNegative() {
         LopHocPhan section = section("OPEN", subject(-2), semester(), 2, 40);
-        stubStudent(student("ACTIVE"));
+        stubLockedStudent(student("ACTIVE"));
         stubLockedSection(section);
 
         assertThrows(BusinessException.class, () -> dangKyHocPhanService.register(MA_SV, MA_LOP));

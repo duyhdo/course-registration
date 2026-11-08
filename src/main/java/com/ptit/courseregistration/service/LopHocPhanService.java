@@ -57,6 +57,12 @@ public class LopHocPhanService {
         return initialize(lopHocPhan);
     }
 
+    private LopHocPhan findByIdForUpdate(String maLopHocPhan) {
+        String id = maLopHocPhan == null ? "" : maLopHocPhan.trim();
+        return lopHocPhanRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lớp học phần: " + id));
+    }
+
     @Transactional(readOnly = true)
     public List<LopHocPhan> search(String keyword, String maHocKy, String trangThai) {
         return initialize(lopHocPhanRepository.findByFilters(
@@ -168,7 +174,7 @@ public class LopHocPhanService {
 
     @Transactional
     public void cancel(String maLopHocPhan) {
-        LopHocPhan lopHocPhan = findById(maLopHocPhan);
+        LopHocPhan lopHocPhan = findByIdForUpdate(maLopHocPhan);
         if (!DRAFT.equals(lopHocPhan.getTrangThai()) && !OPEN.equals(lopHocPhan.getTrangThai())) {
             throw new BusinessException("Chỉ lớp học phần ở trạng thái DRAFT hoặc OPEN mới được hủy.");
         }

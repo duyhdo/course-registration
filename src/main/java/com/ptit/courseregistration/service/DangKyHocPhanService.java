@@ -38,7 +38,7 @@ public class DangKyHocPhanService {
 
     @Transactional
     public DangKyHocPhan register(String maSV, String maLopHocPhan) {
-        SinhVien sinhVien = findSinhVien(maSV);
+        SinhVien sinhVien = findSinhVienForUpdate(maSV);
         if (!ACTIVE.equals(sinhVien.getTrangThai())) {
             throw new BusinessException("Sinh viên đang không hoạt động.");
         }
@@ -171,6 +171,12 @@ public class DangKyHocPhanService {
     private SinhVien findSinhVien(String maSV) {
         String id = maSV == null ? "" : maSV.trim();
         return sinhVienRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Sinh viên không tồn tại."));
+    }
+
+    private SinhVien findSinhVienForUpdate(String maSV) {
+        String id = maSV == null ? "" : maSV.trim();
+        return sinhVienRepository.findByMaSVForUpdate(id)
                 .orElseThrow(() -> new BusinessException("Sinh viên không tồn tại."));
     }
 

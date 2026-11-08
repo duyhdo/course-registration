@@ -13,6 +13,7 @@ import com.ptit.courseregistration.repository.LopHocPhanRepository;
 import com.ptit.courseregistration.repository.MonHocRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -679,7 +681,7 @@ class LopHocPhanServiceTest {
     @Test
     void shouldCancelDraftCourseSection() {
         LopHocPhan section = section("DRAFT");
-        stubExisting(section);
+        stubExistingForUpdate(section);
         when(dangKyHocPhanRepository
                 .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
         stubSave();
@@ -693,7 +695,7 @@ class LopHocPhanServiceTest {
     @Test
     void shouldCancelOpenCourseSection() {
         LopHocPhan section = section("OPEN");
-        stubExisting(section);
+        stubExistingForUpdate(section);
         when(dangKyHocPhanRepository
                 .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
         stubSave();
@@ -706,7 +708,7 @@ class LopHocPhanServiceTest {
     @Test
     void shouldCancelWhenNoRegisteredStudents() {
         LopHocPhan section = section("OPEN");
-        stubExisting(section);
+        stubExistingForUpdate(section);
         when(dangKyHocPhanRepository
                 .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
         stubSave();
@@ -720,7 +722,7 @@ class LopHocPhanServiceTest {
     @Test
     void shouldRejectCancelWhenRegisteredStudentsExist() {
         LopHocPhan section = section("OPEN");
-        stubExisting(section);
+        stubExistingForUpdate(section);
         when(dangKyHocPhanRepository
                 .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(true);
 
@@ -735,14 +737,14 @@ class LopHocPhanServiceTest {
 
     @Test
     void shouldRejectCancelWhenClosed() {
-        stubExisting(section("CLOSED"));
+        stubExistingForUpdate(section("CLOSED"));
 
         assertThrows(BusinessException.class, () -> lopHocPhanService.cancel(MA_LOP));
     }
 
     @Test
     void shouldRejectCancelWhenAlreadyCancelled() {
-        stubExisting(section("CANCELLED"));
+        stubExistingForUpdate(section("CANCELLED"));
 
         assertThrows(BusinessException.class, () -> lopHocPhanService.cancel(MA_LOP));
     }
@@ -750,12 +752,46 @@ class LopHocPhanServiceTest {
     @Test
     void shouldNotModifyEnrollmentDataWhenCancelling() {
         LopHocPhan section = section("DRAFT");
-        stubExisting(section);
+        stubExistingForUpdate(section);
         stubSave();
 
         lopHocPhanService.cancel(MA_LOP);
 
         assertEquals("CANCELLED", section.getTrangThai());
         verify(lopHocPhanRepository).save(section);
+    }
+
+    @Test
+    void shouldUseLockWhenCancellingSection() {
+        LopHocPhan section = section("OPEN");
+        stubExistingForUpdate(section);
+        when(dangKyHocPhanRepository
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
+        stubSave();
+
+        lopHocPhanService.cancel(MA_LOP);
+
+        verify(lopHocPhanRepository).findByIdForUpdate(MA_LOP);
+        verify(lopHocPhanRepository, never()).findById(MA_LOP);
+    }
+
+    @Test
+    void shouldCheckRegisteredEnrollmentsAfterAcquiringLock() {
+        LopHocPhan section = section("OPEN");
+        stubExistingForUpdate(section);
+        when(dangKyHocPhanRepository
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED")).thenReturn(false);
+        stubSave();
+
+        lopHocPhanService.cancel(MA_LOP);
+
+        InOrder inOrder = inOrder(lopHocPhanRepository, dangKyHocPhanRepository);
+        inOrder.verify(lopHocPhanRepository).findByIdForUpdate(MA_LOP);
+        inOrder.verify(dangKyHocPhanRepository)
+                .existsByLopHocPhan_MaLopHocPhanAndTrangThai(MA_LOP, "REGISTERED");
+    }
+
+    private void stubExistingForUpdate(LopHocPhan section) {
+        when(lopHocPhanRepository.findByIdForUpdate(MA_LOP)).thenReturn(Optional.of(section));
     }
 }
