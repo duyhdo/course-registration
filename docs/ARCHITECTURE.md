@@ -17,7 +17,8 @@ Controller → Service → Repository → Entity / SQL Server
 - **Controller:** nhận request, kiểm tra đầu vào web, gọi service và chuẩn bị model/view.
 - **Service:** thực thi quy tắc nghiệp vụ và ranh giới transaction.
 - **Repository:** truy vấn dữ liệu, bao gồm các truy vấn khóa pessimistic dùng cho luồng đồng thời.
-- **Entity/JPA:** ánh xạ các bảng dữ liệu hiện có; Hibernate không tự tạo/cập nhật schema (`ddl-auto=none`).
+- **Entity/JPA:** ánh xạ tám bảng; Flyway quản lý schema và Hibernate kiểm tra tương thích khi khởi động (`ddl-auto=validate`).
+- **Flyway:** các migration lõi trong `src/main/resources/db/migration/`; profile `local` bổ sung seed riêng tại `src/main/resources/db/seed/local/`.
 
 ## 3. Domain Model
 
@@ -94,7 +95,7 @@ Không thể hủy lớp nếu còn enrollment `REGISTERED`. Hiện không hỗ 
 
 ## 9. Re-registration Design
 
-Sau khi hủy, bản ghi cũ giữ `CANCELLED`. Đăng ký lại cùng lớp tạo bản ghi mới `REGISTERED`, không ghi đè lịch sử. Theo tài liệu hoàn tất chức năng, SQL Server có filtered unique index trên `(MaSV, MaLopHocPhan)` với điều kiện `TrangThai = 'REGISTERED'`; đây không phải unique constraint không điều kiện. Schema/index được quản lý ngoài repository vì không có SQL script khởi tạo được lưu trong project.
+Sau khi hủy, bản ghi cũ giữ `CANCELLED`. Đăng ký lại cùng lớp tạo bản ghi mới `REGISTERED`, không ghi đè lịch sử. Migration `V2` tạo filtered unique index SQL Server `UX_DANGKYHOCPHAN_ACTIVE` trên `(MaSV, MaLopHocPhan)` với điều kiện `TrangThai = 'REGISTERED'`; đây không phải unique constraint không điều kiện. Cấu trúc index đã được đối chiếu với metadata của SQL Server đang cấu hình.
 
 ## 10. Concurrency Strategy
 
@@ -130,7 +131,17 @@ Browser → Spring Boot application → SQL Server
 
 Triển khai EC2 chưa được xác nhận là hoàn tất; cần thực hiện triển khai và smoke test riêng.
 
-## 16. Known Limitations
+## 16. Database Bootstrap and Migration
+
+- `db/bootstrap/00_create_database.sql` tạo `QL_DangKyHocPhan` nếu database chưa tồn tại; script không xóa database hiện có.
+- Flyway chạy các migration lõi `V1`–`V3` trong mọi profile.
+- Profile `local` bổ sung `V1000` với dữ liệu demo giả lập; migration này không nằm trong đường dẫn mặc định.
+- Hibernate xác thực schema sau khi Flyway chạy; schema mismatch làm ứng dụng khởi động thất bại thay vì âm thầm cập nhật database.
+- Dữ liệu demo gồm tài khoản `admin`, sinh viên `B24DCCN001`–`B24DCCN010`, dữ liệu môn/lớp và bản ghi đăng ký. Mật khẩu demo `Demo@123` chỉ dành cho local.
+- Lần khởi tạo Flyway yêu cầu database rỗng. Database đã có schema nhưng chưa có Flyway history cần được baseline/migrate riêng; không tự động áp dụng V1 lên schema hiện có.
+- Đã kiểm tra khởi tạo từ database rỗng với cả bốn migration, login seed, sĩ số đăng ký và filtered index; hai test suite lần lượt có 264 và 265 test pass.
+
+## 17. Known Limitations
 
 Phạm vi hiện tại:
 

@@ -1,0 +1,6 @@
+SET NOCOUNT ON;
+
+IF DB_ID(N'QL_DangKyHocPhan') IS NULL
+BEGIN
+    EXEC(N'CREATE DATABASE [QL_DangKyHocPhan]');
+END;
