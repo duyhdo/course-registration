@@ -17,6 +17,8 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -160,18 +162,21 @@ class LopHocPhanServiceTest {
     @Test
     void shouldSearchWithProvidedFilters() {
         List<LopHocPhan> sections = List.of(section("OPEN"));
-        when(lopHocPhanRepository.findByFilters("LHP", MA_HK, "OPEN")).thenReturn(sections);
+        when(lopHocPhanRepository.findByFilters("LHP", MA_HK, "OPEN", PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(sections));
 
-        assertSame(sections, lopHocPhanService.search(" LHP ", " " + MA_HK + " ", " OPEN "));
+        assertEquals(sections, lopHocPhanService.search(
+                " LHP ", " " + MA_HK + " ", " OPEN ", PageRequest.of(0, 10)).getContent());
     }
 
     @Test
     void shouldNormalizeBlankFiltersBeforeSearch() {
-        when(lopHocPhanRepository.findByFilters(null, null, null)).thenReturn(List.of());
+        when(lopHocPhanRepository.findByFilters(null, null, null, PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(List.of()));
 
-        lopHocPhanService.search("  ", null, "\t");
+        lopHocPhanService.search("  ", null, "\t", PageRequest.of(0, 10));
 
-        verify(lopHocPhanRepository).findByFilters(null, null, null);
+        verify(lopHocPhanRepository).findByFilters(null, null, null, PageRequest.of(0, 10));
     }
 
     @Test

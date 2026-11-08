@@ -1,0 +1,37 @@
+<div th:fragment="controls(pagination)" class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+    <p class="text-muted mb-0" th:if="${pagination.totalElements == 0}">0 bản ghi</p>
+    <p class="text-muted mb-0" th:unless="${pagination.totalElements == 0}"
+       th:text="|Hiển thị ${pagination.firstItem}–${pagination.lastItem} / ${pagination.totalElements} bản ghi|"></p>
+
+    <form class="d-flex align-items-center gap-2" method="get" th:action="${pagination.path}">
+        <input type="hidden" name="page" value="0">
+        <input th:each="filter : ${pagination.filters}" type="hidden"
+               th:name="${filter.key}" th:value="${filter.value}">
+        <label class="form-label mb-0 text-nowrap" for="pagination-size">Số dòng</label>
+        <select class="form-select form-select-sm" id="pagination-size" name="size"
+                aria-label="Số dòng mỗi trang" onchange="this.form.submit()">
+            <option th:each="pageSize : ${pagination.pageSizes}" th:value="${pageSize}"
+                    th:selected="${pageSize == pagination.size}" th:text="${pageSize}"></option>
+        </select>
+    </form>
+
+    <nav th:if="${pagination.totalPages > 1}" aria-label="Phân trang">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" th:classappend="${pagination.previousUrl == null} ? 'disabled'">
+                <a class="page-link" th:if="${pagination.previousUrl != null}"
+                   th:href="${pagination.previousUrl}" aria-label="Trang trước">Trước</a>
+                <span class="page-link" th:if="${pagination.previousUrl == null}" aria-disabled="true">Trước</span>
+            </li>
+            <li class="page-item" th:each="pageLink : ${pagination.pages}"
+                th:classappend="${pageLink.active} ? 'active'">
+                <a class="page-link" th:href="${pageLink.url}"
+                   th:text="${pageLink.number + 1}" th:attr="aria-current=${pageLink.active ? 'page' : null}"></a>
+            </li>
+            <li class="page-item" th:classappend="${pagination.nextUrl == null} ? 'disabled'">
+                <a class="page-link" th:if="${pagination.nextUrl != null}"
+                   th:href="${pagination.nextUrl}" aria-label="Trang tiếp theo">Sau</a>
+                <span class="page-link" th:if="${pagination.nextUrl == null}" aria-disabled="true">Sau</span>
+            </li>
+        </ul>
+    </nav>
+</div>

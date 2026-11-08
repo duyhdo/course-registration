@@ -10,7 +10,10 @@ import com.ptit.courseregistration.repository.GiangVienRepository;
 import com.ptit.courseregistration.repository.HocKyRepository;
 import com.ptit.courseregistration.repository.MonHocRepository;
 import com.ptit.courseregistration.service.LopHocPhanService;
+import com.ptit.courseregistration.web.PaginationSupport;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -53,8 +56,15 @@ public class LopHocPhanAdminController {
     public String list(@RequestParam(required = false) String keyword,
                        @RequestParam(required = false) String maHocKy,
                        @RequestParam(required = false) String trangThai,
+                       @RequestParam(required = false) Integer page,
+                       @RequestParam(required = false) Integer size,
                        Model model) {
-        model.addAttribute("courseSections", lopHocPhanService.search(keyword, maHocKy, trangThai));
+        Sort sort = Sort.by(Sort.Direction.ASC, "maLopHocPhan");
+        Page<LopHocPhan> courseSections = PaginationSupport.fetchPage(page, size, sort,
+                pageable -> lopHocPhanService.search(keyword, maHocKy, trangThai, pageable));
+        model.addAttribute("courseSections", courseSections.getContent());
+        model.addAttribute("pagination", PaginationSupport.view(courseSections, "/admin/course-sections",
+                PaginationSupport.filters("keyword", keyword, "maHocKy", maHocKy, "trangThai", trangThai)));
         model.addAttribute("keyword", keyword);
         model.addAttribute("maHocKy", maHocKy);
         model.addAttribute("trangThai", trangThai);

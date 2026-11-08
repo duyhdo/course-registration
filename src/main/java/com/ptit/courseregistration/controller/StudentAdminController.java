@@ -5,7 +5,10 @@ import com.ptit.courseregistration.entity.SinhVien;
 import com.ptit.courseregistration.exception.BusinessException;
 import com.ptit.courseregistration.repository.KhoaRepository;
 import com.ptit.courseregistration.service.StudentService;
+import com.ptit.courseregistration.web.PaginationSupport;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -31,9 +34,17 @@ public class StudentAdminController {
     }
 
     @GetMapping
-    public String list(@RequestParam(required = false) String keyword, Model model) {
+    public String list(@RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) Integer page,
+                       @RequestParam(required = false) Integer size,
+                       Model model) {
         boolean blank = keyword == null || keyword.isBlank();
-        model.addAttribute("students", blank ? studentService.findAll() : studentService.search(keyword));
+        Sort sort = Sort.by(Sort.Direction.ASC, "maSV");
+        Page<SinhVien> students = PaginationSupport.fetchPage(page, size, sort,
+                pageable -> blank ? studentService.findAll(pageable) : studentService.search(keyword, pageable));
+        model.addAttribute("students", students.getContent());
+        model.addAttribute("pagination",
+                PaginationSupport.view(students, "/admin/students", PaginationSupport.filters("keyword", keyword)));
         model.addAttribute("keyword", keyword);
         return "admin/students/list";
     }

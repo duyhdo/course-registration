@@ -2,6 +2,8 @@ package com.ptit.courseregistration.repository;
 
 import com.ptit.courseregistration.entity.SinhVien;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +20,8 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
 
     boolean existsByEmailAndMaSVNot(String email, String maSV);
 
-    List<SinhVien> findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(String maSV, String hoTen);
+    Page<SinhVien> findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(
+            String maSV, String hoTen, Pageable pageable);
 
     List<SinhVien> findByTrangThai(String trangThai);
 

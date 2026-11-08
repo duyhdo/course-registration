@@ -5,6 +5,9 @@ import com.ptit.courseregistration.exception.BusinessException;
 import com.ptit.courseregistration.repository.HocKyRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
 import com.ptit.courseregistration.service.AdminEnrollmentService;
+import com.ptit.courseregistration.web.PaginationSupport;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +37,19 @@ public class AdminEnrollmentController {
                        @RequestParam(required = false) String maHocKy,
                        @RequestParam(required = false) String maLopHocPhan,
                        @RequestParam(required = false) String trangThai,
+                       @RequestParam(required = false) Integer page,
+                       @RequestParam(required = false) Integer size,
                        Model model) {
-        model.addAttribute("enrollments",
-                adminEnrollmentService.search(keyword, maHocKy, maLopHocPhan, trangThai));
+        Sort sort = Sort.by(Sort.Direction.DESC, "ngayDangKy")
+                .and(Sort.by(Sort.Direction.DESC, "maDangKy"));
+        Page<com.ptit.courseregistration.entity.DangKyHocPhan> enrollments =
+                PaginationSupport.fetchPage(page, size, sort,
+                        pageable -> adminEnrollmentService.search(
+                                keyword, maHocKy, maLopHocPhan, trangThai, pageable));
+        model.addAttribute("enrollments", enrollments.getContent());
+        model.addAttribute("pagination", PaginationSupport.view(enrollments, "/admin/enrollments",
+                PaginationSupport.filters("keyword", keyword, "maHocKy", maHocKy,
+                        "maLopHocPhan", maLopHocPhan, "trangThai", trangThai)));
         model.addAttribute("keyword", keyword);
         model.addAttribute("maHocKy", maHocKy);
         model.addAttribute("maLopHocPhan", maLopHocPhan);

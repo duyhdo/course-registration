@@ -18,6 +18,8 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -606,11 +608,11 @@ class DangKyHocPhanServiceTest {
         DangKyHocPhan historical = registration("CANCELLED");
         List<DangKyHocPhan> history = List.of(historical);
         stubStudent(student);
-        when(dangKyHocPhanRepository.findBySinhVien_MaSVOrderByNgayDangKyDesc(MA_SV))
-                .thenReturn(history);
+        when(dangKyHocPhanRepository.findBySinhVien_MaSV(MA_SV, PageRequest.of(0, 10)))
+                .thenReturn(new PageImpl<>(history));
 
-        assertSame(history, dangKyHocPhanService.findStudentHistory(MA_SV));
-        verify(dangKyHocPhanRepository).findBySinhVien_MaSVOrderByNgayDangKyDesc(MA_SV);
+        assertEquals(history, dangKyHocPhanService.findStudentHistory(MA_SV, PageRequest.of(0, 10)).getContent());
+        verify(dangKyHocPhanRepository).findBySinhVien_MaSV(MA_SV, PageRequest.of(0, 10));
     }
 
     @Test
@@ -629,7 +631,8 @@ class DangKyHocPhanServiceTest {
     void shouldRejectHistoryLookupWhenStudentDoesNotExist() {
         when(sinhVienRepository.findById(MA_SV)).thenReturn(Optional.empty());
 
-        assertThrows(BusinessException.class, () -> dangKyHocPhanService.findStudentHistory(MA_SV));
+        assertThrows(BusinessException.class,
+                () -> dangKyHocPhanService.findStudentHistory(MA_SV, PageRequest.of(0, 10)));
 
         verifyNoInteractions(dangKyHocPhanRepository);
     }
@@ -849,7 +852,7 @@ class DangKyHocPhanServiceTest {
         assertEquals(3, dangKyHocPhanService.calculateTotalRegisteredCredits(MA_SV));
 
         verify(dangKyHocPhanRepository).findBySinhVien_MaSVAndTrangThaiIn(MA_SV, List.of("REGISTERED"));
-        verify(dangKyHocPhanRepository, never()).findBySinhVien_MaSVOrderByNgayDangKyDesc(any());
+        verify(dangKyHocPhanRepository, never()).findBySinhVien_MaSV(any(), any());
     }
 
     @Test

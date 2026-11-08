@@ -4,6 +4,8 @@ import com.ptit.courseregistration.entity.DangKyHocPhan;
 import com.ptit.courseregistration.exception.BusinessException;
 import com.ptit.courseregistration.repository.DangKyHocPhanRepository;
 import com.ptit.courseregistration.repository.LopHocPhanRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +28,14 @@ public class AdminEnrollmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<DangKyHocPhan> search(String keyword, String maHocKy,
-                                      String maLopHocPhan, String trangThai) {
+    public Page<DangKyHocPhan> search(String keyword, String maHocKy,
+                                      String maLopHocPhan, String trangThai, Pageable pageable) {
         return dangKyHocPhanRepository.searchForAdmin(
                 blankToNull(keyword),
                 blankToNull(maHocKy),
                 blankToNull(maLopHocPhan),
-                blankToNull(trangThai));
+                blankToNull(trangThai),
+                pageable);
     }
 
     @Transactional(readOnly = true)

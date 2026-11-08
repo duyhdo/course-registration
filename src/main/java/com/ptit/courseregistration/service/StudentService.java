@@ -9,6 +9,8 @@ import com.ptit.courseregistration.repository.KhoaRepository;
 import com.ptit.courseregistration.repository.SinhVienRepository;
 import com.ptit.courseregistration.repository.TaiKhoanRepository;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +42,8 @@ public class StudentService {
     }
 
     @Transactional(readOnly = true)
-    public List<SinhVien> findAll() {
-        return initialize(sinhVienRepository.findAll());
+    public Page<SinhVien> findAll(Pageable pageable) {
+        return initialize(sinhVienRepository.findAll(pageable));
     }
 
     @Transactional(readOnly = true)
@@ -52,12 +54,13 @@ public class StudentService {
     }
 
     @Transactional(readOnly = true)
-    public List<SinhVien> search(String keyword) {
+    public Page<SinhVien> search(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
-            return findAll();
+            return findAll(pageable);
         }
         String k = keyword.trim();
-        return initialize(sinhVienRepository.findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(k, k));
+        return initialize(sinhVienRepository
+                .findByMaSVContainingIgnoreCaseOrHoTenContainingIgnoreCase(k, k, pageable));
     }
 
     @Transactional
@@ -138,9 +141,8 @@ public class StudentService {
         return sv;
     }
 
-    private List<SinhVien> initialize(List<SinhVien> list) {
-        list.forEach(this::initialize);
-        return list;
+    private Page<SinhVien> initialize(Page<SinhVien> page) {
+        return page.map(this::initialize);
     }
 
     private Khoa findKhoa(String maKhoa) {
